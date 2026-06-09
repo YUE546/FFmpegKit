@@ -28,11 +28,16 @@ namespace FFmpegKit
             btnStart.Click += BtnStart_Click;
 
             lvFiles.ColumnClick += LvFiles_ColumnClick;
+            cmbCodec.SelectedIndexChanged += CmbCodec_SelectedIndexChanged;
+            cmbFormat.SelectedIndexChanged += CmbFormat_SelectedIndexChanged;
         }
 
         private void ConvertForm_more_Load(object sender, EventArgs e)
         {
+            PopulateCodecList();
+
             // 配置是否允许使用GPU加速
+
             if (ConfigManager.DefaultGPU == "none")
             {
                 chkGPU.Checked = false;
@@ -41,9 +46,122 @@ namespace FFmpegKit
             else
             {
                 chkGPU.Enabled = true;
-                chkGPU.Checked = ConfigManager.DefaultGPU != "none"; 
+                chkGPU.Checked = ConfigManager.DefaultGPU != "none";
             }
+
             txtOutputFolder.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            UpdateCodecDependentControls();
+            UpdateFormatDependentControls();
+        }
+
+        // ====================== 编码器列表填充 ======================
+
+        private void PopulateCodecList()
+        {
+            cmbCodec.DisplayMember = "DisplayName";
+            var codecs = FFmpegHelper.GetAvailableVideoCodecs();
+            foreach (var codec in codecs)
+            {
+                cmbCodec.Items.Add(codec);
+            }
+            if (cmbCodec.Items.Count > 0)
+                cmbCodec.SelectedIndex = 0;
+        }
+
+        // ====================== 编码器联动 ======================
+
+        private void CmbCodec_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateCodecDependentControls();
+        }
+
+        private void UpdateCodecDependentControls()
+        {
+            if (cmbCodec.SelectedItem == null) return;
+
+            FFmpegHelper.VideoCodecInfo codec = (FFmpegHelper.VideoCodecInfo)cmbCodec.SelectedItem;
+
+            // 更新质量提示
+            lblQualityTip.Text = string.Format("{0}, {1}-{2}, 默认{3}, 越小质量越高",
+                codec.QualityLabel, codec.MinQuality, codec.MaxQuality, codec.DefaultQuality);
+            txtQuality.Text = codec.DefaultQuality.ToString();
+
+            // 更新预设列表
+            cmbPreset.Items.Clear();
+            if (codec.SupportsPreset)
+            {
+                var presets = FFmpegHelper.GetPresetsForCodec(codec);
+                foreach (var p in presets)
+                    cmbPreset.Items.Add(p);
+
+                // 选择中等预设
+                if (presets.Contains("medium"))
+                    cmbPreset.SelectedIndex = presets.IndexOf("medium");
+                else if (presets.Contains("balanced"))
+                    cmbPreset.SelectedIndex = presets.IndexOf("balanced");
+                else if (cmbPreset.Items.Count > 0)
+                    cmbPreset.SelectedIndex = cmbPreset.Items.Count / 2;
+
+                cmbPreset.Enabled = true;
+                lblPreset.Enabled = true;
+            }
+            else
+            {
+                cmbPreset.Enabled = false;
+                lblPreset.Enabled = false;
+            }
+
+            // 硬件编码器自动勾选GPU
+            if (codec.IsHardware && ConfigManager.DefaultGPU != "none")
+            {
+                chkGPU.Checked = true;
+                chkGPU.Enabled = true;
+            }
+            else if (ConfigManager.DefaultGPU == "none")
+            {
+                chkGPU.Checked = false;
+                chkGPU.Enabled = false;
+            }
+            else
+            {
+                chkGPU.Enabled = true;
+            }
+        }
+
+        // ====================== 输出格式联动 ======================
+
+        private void CmbFormat_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateFormatDependentControls();
+        }
+
+        private void UpdateFormatDependentControls()
+        {
+            string format = cmbFormat.Text;
+            bool isAudioFormat = FFmpegHelper.IsAudioOnly(format);
+
+            lblCodec.Enabled = !isAudioFormat;
+            cmbCodec.Enabled = !isAudioFormat;
+            lblQuality.Enabled = !isAudioFormat;
+            txtQuality.Enabled = !isAudioFormat;
+            lblQualityTip.Enabled = !isAudioFormat;
+            lblPreset.Enabled = !isAudioFormat && cmbPreset.Items.Count > 0;
+            cmbPreset.Enabled = !isAudioFormat && cmbPreset.Items.Count > 0;
+            lblHeight.Enabled = !isAudioFormat;
+            txtHeight.Enabled = !isAudioFormat;
+            lblHeightTip.Enabled = !isAudioFormat;
+
+            if (isAudioFormat)
+            {
+                chkGPU.Checked = false;
+                chkGPU.Enabled = false;
+            }
+            else
+            {
+                chkGPU.Enabled = ConfigManager.DefaultGPU != "none";
+                if (cmbCodec.SelectedItem != null && ((FFmpegHelper.VideoCodecInfo)cmbCodec.SelectedItem).IsHardware)
+                    chkGPU.Checked = true;
+            }
         }
 
         // ====================== 鼠标拖拽排序逻辑 ======================
@@ -61,12 +179,12 @@ namespace FFmpegKit
             // 1. 如果拖拽的是外部文件
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                e.Effect = DragDropEffects.Copy; // 显示“复制”图标
+                e.Effect = DragDropEffects.Copy; // 显示"复制"图标
             }
             // 2. 如果是内部 ListViewItem
             else if (e.Data.GetDataPresent(typeof(ListViewItem)))
             {
-                e.Effect = DragDropEffects.Move; // 显示“移动”图标
+                e.Effect = DragDropEffects.Move; // 显示"移动"图标
             }
             else
             {
@@ -118,11 +236,8 @@ namespace FFmpegKit
 
             // 如果没有明确的目标项（比如拖到了列表空白处），默认移到最后
             int targetIndex = lvFiles.Items.Count - 1;
-
             if (targetItem != null)
-            {
                 targetIndex = targetItem.Index;
-            }
 
             // 执行位置调整
             lvFiles.Items.Remove(draggedItem);
@@ -145,7 +260,6 @@ namespace FFmpegKit
 
             // 检查是否已存在于列表中 (根据 Tag 存储的全路径判断)
             bool exists = lvFiles.Items.Cast<ListViewItem>().Any(i => (string)i.Tag == filePath);
-
             if (!exists)
             {
                 var item = new ListViewItem(new[] { "", Path.GetFileName(filePath), filePath });
@@ -206,16 +320,7 @@ namespace FFmpegKit
 
             var item = lvFiles.SelectedItems[0];
             int index = lvFiles.Items.IndexOf(item);
-            int newIndex = index;
-
-            if (toEnd)
-            {
-                newIndex = up ? 0 : lvFiles.Items.Count - 1;
-            }
-            else
-            {
-                newIndex = up ? index - 1 : index + 1;
-            }
+            int newIndex = toEnd ? (up ? 0 : lvFiles.Items.Count - 1) : (up ? index - 1 : index + 1);
 
             // --- 边界检查 ---
             if (newIndex < 0 || newIndex >= lvFiles.Items.Count)
@@ -251,9 +356,7 @@ namespace FFmpegKit
 
                 lvFiles.BeginUpdate();
                 foreach (ListViewItem item in lvFiles.Items)
-                {
                     item.Checked = targetState;
-                }
                 lvFiles.EndUpdate();
             }
         }
@@ -289,6 +392,13 @@ namespace FFmpegKit
                 return;
             }
 
+            FFmpegHelper.VideoCodecInfo codec = cmbCodec.SelectedItem as FFmpegHelper.VideoCodecInfo;
+            int qualityValue = 23;
+            if (int.TryParse(txtQuality.Text, out int q))
+                qualityValue = q;
+
+            string preset = cmbPreset.SelectedItem as string;
+
             int? bitrate = null;
             if (int.TryParse(txtBitrate.Text, out int b) && b > 0)
                 bitrate = b;
@@ -303,6 +413,9 @@ namespace FFmpegKit
                 txtOutputFolder.Text,
                 cmbFormat.Text,
                 chkGPU.Checked,
+                codec,
+                qualityValue,
+                preset,
                 bitrate,
                 height
             );

@@ -20,14 +20,20 @@ namespace FFmpegKit
         /// <param name="inputFiles">输入文件列表</param>
         /// <param name="outputFolder">输出文件夹</param>
         /// <param name="outputFormat">输出格式</param>
-        /// <param name="useGpu">是否使用GPU加速</param>
-        /// <param name="bitrateKbps">视频比特率，单位：kbps</param>
-        /// <param name="targetHeight">目标高度，单位：像素</param>
+        /// <param name="useGpu">是否使用GPU加速解码</param>
+        /// <param name="videoCodec">视频编码器选择（null=自动）</param>
+        /// <param name="qualityValue">质量值（CRF/QP/CQ等）</param>
+        /// <param name="preset">编码预设</param>
+        /// <param name="bitrateKbps">视频码率上限，单位：kbps（可选）</param>
+        /// <param name="targetHeight">目标高度，单位：像素（可选）</param>
         public static void ExecuteMultiConvert(
             List<string> inputFiles,
             string outputFolder,
             string outputFormat,
             bool useGpu,
+            VideoCodecInfo videoCodec,
+            int qualityValue,
+            string preset,
             int? bitrateKbps = null,
             int? targetHeight = null)
         {
@@ -41,29 +47,34 @@ namespace FFmpegKit
             foreach (string input in inputFiles)
             {
                 string fileName = Path.GetFileNameWithoutExtension(input);
-
                 string outputFile = Path.Combine(outputFolder, $"{fileName}_converted{outputFormat}");
-
                 bool isInputAudioOnly = IsAudioOnly(Path.GetExtension(input));
 
                 StringBuilder sb = new StringBuilder();
+                sb.Append("-hide_banner ");
 
-                sb.Append($"-hide_banner ");
+                // ==================== hwaccel 参数 ====================
+                // 硬件编码器自动启用对应 hwaccel；软件编码器根据 GPU checkbox 决定
+                bool useHwAccel = false;
+                if (videoCodec != null && videoCodec.IsHardware)
+                    useHwAccel = true;
+                else if (useGpu && !isInputAudioOnly)
+                    useHwAccel = true;
 
-                // ==================== GPU 参数 ====================
-                if (useGpu && !isInputAudioOnly)
+                if (useHwAccel && !isInputAudioOnly)
                 {
-                    if (gpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
-                    else if (gpuType == "amf") sb.Append("-hwaccel amf ");
-                    //else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
-                    //经测试在某些版本下异常，intel 显卡此处改用 auto
-                    else if (gpuType == "qsv") sb.Append("-hwaccel auto ");
+                    string hwGpuType = (videoCodec != null && videoCodec.IsHardware)
+                        ? videoCodec.GpuType
+                        : gpuType;
+
+                    if (hwGpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
+                    // AMF/QSV 及其他统一使用 auto，因为 -hwaccel amf/qsv 在部分 FFmpeg 版本不支持解码
                     else sb.Append("-hwaccel auto ");
                 }
 
                 sb.Append($"-i \"{input}\" ");
 
-                // ==================== 纯音频转视频的特殊处理 ====================
+                // ==================== 纯音频输入 → 视频输出 ====================
                 if (isInputAudioOnly && isOutputVideo)
                 {
                     // 固定 16:9 比例，根据用户输入的高度计算宽度
@@ -73,13 +84,9 @@ namespace FFmpegKit
 
                     // 生成黑屏视频源 + 音频同步
                     sb.Append($"-f lavfi -i color=c=black:s={width}x{height}:r=30 ");
-
-                    string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
-                    //sb.Append($"-c:v {videoCodec} -preset medium -crf 23 ");
-                    // 根据不同GPU类型确定质量参数
-                    string qualityParams = GetGpuQualityParams(gpuType, 23, useGpu);
-                    sb.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
-
+                    string videoEncoder = GetEffectiveVideoEncoder(videoCodec, useHwAccel);
+                    string codecParams = BuildCodecParams(videoCodec, videoEncoder, qualityValue, preset, useHwAccel);
+                    sb.Append(codecParams);
                     sb.Append("-c:a aac -b:a 192k -shortest ");   // -shortest 保证时长一致
                 }
                 else
@@ -87,15 +94,14 @@ namespace FFmpegKit
                     // ==================== 正常音视频转换 ====================
                     if (isOutputVideo)   // 输出是视频格式
                     {
-                        string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
-                        //sb.Append($"-c:v {videoCodec} -preset medium ");
-                        // 根据不同GPU类型确定质量参数
-                        string qualityParams = GetGpuQualityParams(gpuType, 20, useGpu);
-                        sb.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
+                        string videoEncoder = GetEffectiveVideoEncoder(videoCodec, useGpu);
+                        string codecParams = BuildCodecParams(videoCodec, videoEncoder, qualityValue, preset, useGpu);
+                        sb.Append(codecParams);
 
                         if (targetHeight.HasValue && targetHeight > 0)
                         {
-                            if (gpuType == "nvenc" && useGpu)
+                            bool useNvencScale = videoCodec != null && videoCodec.GpuType == "nvenc" && useHwAccel;
+                            if (useNvencScale)
                             {
                                 int origW, origH;
                                 if (TryGetVideoResolution(input, out origW, out origH) && origW > 0 && origH > 0)
@@ -115,7 +121,7 @@ namespace FFmpegKit
                         }
 
                         if (bitrateKbps.HasValue && bitrateKbps > 0)
-                            sb.Append($"-b:v {bitrateKbps}k ");
+                            sb.Append($"-maxrate {bitrateKbps}k -bufsize {bitrateKbps * 2}k ");
                     }
                     else
                     {
@@ -208,14 +214,11 @@ namespace FFmpegKit
 
                 sb.Append($"-hide_banner ");
 
-                // GPU 参数
+                // GPU 参数（仅NVENC全链路GPU，AMF/QSV统一使用auto解码）
                 if (useGpu)
                 {
                     if (gpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
-                    else if (gpuType == "amf") sb.Append("-hwaccel amf ");
-                    //else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
-                    //经测试在某些版本下异常，intel 显卡此处改用 auto
-                    else if (gpuType == "qsv") sb.Append("-hwaccel auto ");
+                    // AMF/QSV 及其他统一使用 auto，因为 -hwaccel amf/qsv 在部分 FFmpeg 版本不支持解码
                     else sb.Append("-hwaccel auto ");
                 }
 
@@ -293,14 +296,11 @@ namespace FFmpegKit
 
                 sb.Append($"-hide_banner ");
 
-                // GPU 参数（纯音频不需要）
+                // GPU 参数（纯音频不需要；仅NVENC全链路GPU，AMF/QSV统一使用auto解码）
                 if (useGpu && !isAudioOnly)
                 {
                     if (gpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
-                    else if (gpuType == "amf") sb.Append("-hwaccel amf ");
-                    //else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
-                    //经测试在某些版本下异常，intel 显卡此处改用 auto
-                    else if (gpuType == "qsv") sb.Append("-hwaccel auto ");
+                    // AMF/QSV 及其他统一使用 auto，因为 -hwaccel amf/qsv 在部分 FFmpeg 版本不支持解码
                     else sb.Append("-hwaccel auto ");
                 }
 
@@ -416,14 +416,11 @@ namespace FFmpegKit
                 StringBuilder sb2 = new StringBuilder();
                 sb2.Append($"-hide_banner ");
 
-                //GPU 加速
+                //GPU 加速（仅NVENC全链路GPU，AMF/QSV统一使用auto解码）
                 if (useGpu)
                 {
                     if (gpuType == "nvenc") sb2.Append("-hwaccel cuda -hwaccel_output_format cuda ");
-                    else if (gpuType == "amf") sb2.Append("-hwaccel amf ");
-                    //else if (gpuType == "qsv") sb2.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
-                    //经测试在某些版本下异常，intel 显卡此处改用 auto
-                    else if (gpuType == "qsv") sb2.Append("-hwaccel auto ");
+                    // AMF/QSV 及其他统一使用 auto，因为 -hwaccel amf/qsv 在部分 FFmpeg 版本不支持解码
                     else sb2.Append("-hwaccel auto ");
                 }
 
@@ -918,7 +915,7 @@ namespace FFmpegKit
         /// <summary>
         /// 简单判断是否为纯音频后缀
         /// </summary>
-        private static bool IsAudioOnly(string ext)
+        public static bool IsAudioOnly(string ext)
         {
             string[] audioExts = { ".mp3", ".wav", ".m4a", ".flac", ".aac", ".ogg", ".wma" };
             return audioExts.Contains(ext.ToLower());
@@ -1123,6 +1120,323 @@ namespace FFmpegKit
             public int Index { get; set; }
             public string Type { get; set; }
             public string Codec { get; set; } // 新增：保存编码名称，如 aac, mp3, ac3, flac
+        }
+
+        /// <summary>
+        /// 视频编码器信息，供 ConvertForm 等窗体使用
+        /// </summary>
+        public class VideoCodecInfo
+        {
+            public string DisplayName { get; set; }
+            public string FFmpegEncoder { get; set; }
+            public string QualityType { get; set; }      // "crf", "qp", "cq", "cqp"
+            public string QualityLabel { get; set; }      // "CRF", "QP", "CQ", "CQP"
+            public int DefaultQuality { get; set; }
+            public int MinQuality { get; set; }
+            public int MaxQuality { get; set; }
+            public bool IsHardware { get; set; }
+            public string GpuType { get; set; }           // "nvenc", "amf", "qsv", ""(软件)
+            public bool SupportsPreset { get; set; }
+
+            public override string ToString() { return DisplayName; }
+        }
+
+        /// <summary>
+        /// 获取当前环境下可用的视频编码器列表
+        /// </summary>
+        public static List<VideoCodecInfo> GetAvailableVideoCodecs()
+        {
+            var codecs = new List<VideoCodecInfo>();
+
+            // 自动选项：根据 GPU 设置自动选择编码器
+            codecs.Add(new VideoCodecInfo
+            {
+                DisplayName = "自动（根据GPU设置）",
+                FFmpegEncoder = "auto",
+                QualityType = "crf",
+                QualityLabel = "CRF",
+                DefaultQuality = 20,
+                MinQuality = 0,
+                MaxQuality = 51,
+                IsHardware = false,
+                GpuType = "",
+                SupportsPreset = true
+            });
+
+            // 软件编码器
+            codecs.Add(new VideoCodecInfo
+            {
+                DisplayName = "H.264 (AVC) — libx264",
+                FFmpegEncoder = "libx264",
+                QualityType = "crf",
+                QualityLabel = "CRF",
+                DefaultQuality = 23,
+                MinQuality = 0,
+                MaxQuality = 51,
+                IsHardware = false,
+                GpuType = "",
+                SupportsPreset = true
+            });
+
+            codecs.Add(new VideoCodecInfo
+            {
+                DisplayName = "H.265 (HEVC) — libx265",
+                FFmpegEncoder = "libx265",
+                QualityType = "crf",
+                QualityLabel = "CRF",
+                DefaultQuality = 28,
+                MinQuality = 0,
+                MaxQuality = 51,
+                IsHardware = false,
+                GpuType = "",
+                SupportsPreset = true
+            });
+
+            codecs.Add(new VideoCodecInfo
+            {
+                DisplayName = "MPEG-2 — mpeg2video",
+                FFmpegEncoder = "mpeg2video",
+                QualityType = "qp",
+                QualityLabel = "QP",
+                DefaultQuality = 4,
+                MinQuality = 1,
+                MaxQuality = 31,
+                IsHardware = false,
+                GpuType = "",
+                SupportsPreset = false
+            });
+
+            codecs.Add(new VideoCodecInfo
+            {
+                DisplayName = "Xvid — libxvid",
+                FFmpegEncoder = "libxvid",
+                QualityType = "qp",
+                QualityLabel = "QP",
+                DefaultQuality = 4,
+                MinQuality = 1,
+                MaxQuality = 31,
+                IsHardware = false,
+                GpuType = "",
+                SupportsPreset = false
+            });
+
+            codecs.Add(new VideoCodecInfo
+            {
+                DisplayName = "VP9 — libvpx-vp9",
+                FFmpegEncoder = "libvpx-vp9",
+                QualityType = "crf",
+                QualityLabel = "CRF",
+                DefaultQuality = 31,
+                MinQuality = 0,
+                MaxQuality = 63,
+                IsHardware = false,
+                GpuType = "",
+                SupportsPreset = true
+            });
+
+            // 硬件编码器（仅当系统支持时添加）
+            if (ConfigManager.SupportNvenc)
+            {
+                codecs.Add(new VideoCodecInfo
+                {
+                    DisplayName = "H.264 (NVENC) — h264_nvenc",
+                    FFmpegEncoder = "h264_nvenc",
+                    QualityType = "cq",
+                    QualityLabel = "CQ",
+                    DefaultQuality = 20,
+                    MinQuality = 0,
+                    MaxQuality = 51,
+                    IsHardware = true,
+                    GpuType = "nvenc",
+                    SupportsPreset = true
+                });
+
+                codecs.Add(new VideoCodecInfo
+                {
+                    DisplayName = "H.265 (NVENC) — hevc_nvenc",
+                    FFmpegEncoder = "hevc_nvenc",
+                    QualityType = "cq",
+                    QualityLabel = "CQ",
+                    DefaultQuality = 20,
+                    MinQuality = 0,
+                    MaxQuality = 51,
+                    IsHardware = true,
+                    GpuType = "nvenc",
+                    SupportsPreset = true
+                });
+            }
+
+            if (ConfigManager.SupportAmf)
+            {
+                codecs.Add(new VideoCodecInfo
+                {
+                    DisplayName = "H.264 (AMF) — h264_amf",
+                    FFmpegEncoder = "h264_amf",
+                    QualityType = "cqp",
+                    QualityLabel = "CQP",
+                    DefaultQuality = 20,
+                    MinQuality = 0,
+                    MaxQuality = 51,
+                    IsHardware = true,
+                    GpuType = "amf",
+                    SupportsPreset = true
+                });
+
+                codecs.Add(new VideoCodecInfo
+                {
+                    DisplayName = "H.265 (AMF) — hevc_amf",
+                    FFmpegEncoder = "hevc_amf",
+                    QualityType = "cqp",
+                    QualityLabel = "CQP",
+                    DefaultQuality = 20,
+                    MinQuality = 0,
+                    MaxQuality = 51,
+                    IsHardware = true,
+                    GpuType = "amf",
+                    SupportsPreset = true
+                });
+            }
+
+            if (ConfigManager.SupportQsv)
+            {
+                codecs.Add(new VideoCodecInfo
+                {
+                    DisplayName = "H.264 (QSV) — h264_qsv",
+                    FFmpegEncoder = "h264_qsv",
+                    QualityType = "qp",
+                    QualityLabel = "QP",
+                    DefaultQuality = 20,
+                    MinQuality = 0,
+                    MaxQuality = 51,
+                    IsHardware = true,
+                    GpuType = "qsv",
+                    SupportsPreset = true
+                });
+
+                codecs.Add(new VideoCodecInfo
+                {
+                    DisplayName = "H.265 (QSV) — hevc_qsv",
+                    FFmpegEncoder = "hevc_qsv",
+                    QualityType = "qp",
+                    QualityLabel = "QP",
+                    DefaultQuality = 20,
+                    MinQuality = 0,
+                    MaxQuality = 51,
+                    IsHardware = true,
+                    GpuType = "qsv",
+                    SupportsPreset = true
+                });
+            }
+
+            return codecs;
+        }
+
+        /// <summary>
+        /// 获取指定编码器的可用预设列表
+        /// </summary>
+        public static List<string> GetPresetsForCodec(VideoCodecInfo codec)
+        {
+            if (codec == null) return new List<string> { "medium" };
+
+            // AMF 使用 -quality 参数，值不同于标准 preset
+            if (codec.FFmpegEncoder == "h264_amf" || codec.FFmpegEncoder == "hevc_amf")
+            {
+                return new List<string> { "speed", "balanced", "quality" };
+            }
+
+            // MPEG-2 和 Xvid 不支持 preset
+            if (codec.FFmpegEncoder == "mpeg2video" || codec.FFmpegEncoder == "libxvid")
+            {
+                return new List<string>();
+            }
+
+            // 其他编码器使用标准 preset
+            return new List<string> { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow" };
+        }
+
+        /// <summary>
+        /// 获取默认预设在列表中的索引（倾向于 medium）
+        /// </summary>
+        public static int GetDefaultPresetIndex(VideoCodecInfo codec)
+        {
+            var presets = GetPresetsForCodec(codec);
+            // AMF: 默认选 balanced (index 1)
+            if (codec.FFmpegEncoder == "h264_amf" || codec.FFmpegEncoder == "hevc_amf")
+                return 1;
+            // 其他: 默认选 medium (index 5)
+            int idx = presets.IndexOf("medium");
+            return idx >= 0 ? idx : 0;
+        }
+
+        /// <summary>
+        /// 根据编码器信息获取实际使用的 FFmpeg 编码器名称
+        /// </summary>
+        private static string GetEffectiveVideoEncoder(VideoCodecInfo codec, bool useGpu)
+        {
+            if (codec == null || codec.FFmpegEncoder == "auto")
+            {
+                if (useGpu)
+                    return GetGpuVideoCodec(ConfigManager.DefaultGPU.ToLower());
+                else
+                    return "libx264";
+            }
+            return codec.FFmpegEncoder;
+        }
+
+        /// <summary>
+        /// 根据编码器信息构建编码参数字符串（编码器 + 预设 + 质量参数）
+        /// </summary>
+        private static string BuildCodecParams(VideoCodecInfo codec, string videoEncoder, int qualityValue, string preset, bool useGpu)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("-c:v " + videoEncoder + " ");
+
+            // 预设参数
+            if (!string.IsNullOrEmpty(preset) && codec != null && codec.SupportsPreset)
+            {
+                if (codec.FFmpegEncoder == "h264_amf" || codec.FFmpegEncoder == "hevc_amf")
+                {
+                    sb.Append("-quality " + preset + " ");
+                }
+                else
+                {
+                    sb.Append("-preset " + preset + " ");
+                }
+            }
+
+            // 质量参数
+            if (codec == null || codec.FFmpegEncoder == "auto")
+            {
+                // 自动模式：沿用旧逻辑
+                sb.Append(GetGpuQualityParams(ConfigManager.DefaultGPU.ToLower(), qualityValue, useGpu));
+            }
+            else
+            {
+                switch (codec.QualityType)
+                {
+                    case "crf":
+                        if (codec.FFmpegEncoder == "libvpx-vp9")
+                            sb.Append("-crf " + qualityValue + " -b:v 0 ");
+                        else
+                            sb.Append("-crf " + qualityValue + " ");
+                        break;
+                    case "qp":
+                        if (codec.FFmpegEncoder == "mpeg2video" || codec.FFmpegEncoder == "libxvid")
+                            sb.Append("-q:v " + qualityValue + " ");
+                        else  // QSV 使用 -global_quality
+                            sb.Append("-global_quality " + qualityValue + " ");
+                        break;
+                    case "cq":  // NVENC: VBR 模式 + CQ 目标
+                        sb.Append("-rc vbr -cq " + qualityValue + " -qmin " + qualityValue + " -qmax " + qualityValue + " ");
+                        break;
+                    case "cqp":  // AMF: 恒定QP模式
+                        sb.Append("-rc cqp -qp_i " + qualityValue + " -qp_p " + qualityValue + " ");
+                        break;
+                }
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>

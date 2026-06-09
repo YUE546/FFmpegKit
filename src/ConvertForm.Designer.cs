@@ -31,17 +31,25 @@
             this.cmbFormat = new System.Windows.Forms.ComboBox();
             this.chkGPU = new System.Windows.Forms.CheckBox();
             this.grpAdvanced = new System.Windows.Forms.GroupBox();
+            this.lblCodec = new System.Windows.Forms.Label();
+            this.cmbCodec = new System.Windows.Forms.ComboBox();
+            this.lblQuality = new System.Windows.Forms.Label();
+            this.txtQuality = new System.Windows.Forms.TextBox();
+            this.lblQualityTip = new System.Windows.Forms.Label();
+            this.lblPreset = new System.Windows.Forms.Label();
+            this.cmbPreset = new System.Windows.Forms.ComboBox();
             this.lblBitrate = new System.Windows.Forms.Label();
             this.txtBitrate = new System.Windows.Forms.TextBox();
+            this.lblBitrateTip = new System.Windows.Forms.Label();
             this.lblHeight = new System.Windows.Forms.Label();
             this.txtHeight = new System.Windows.Forms.TextBox();
             this.lblHeightTip = new System.Windows.Forms.Label();
             this.btnStart = new System.Windows.Forms.Button();
             this.grpAdvanced.SuspendLayout();
             this.SuspendLayout();
-            // 
+            //
             // lvFiles
-            // 
+            //
             this.lvFiles.CheckBoxes = true;
             this.lvFiles.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
                 new System.Windows.Forms.ColumnHeader() { Text = "选中", Width = 50 },
@@ -53,23 +61,21 @@
             this.lvFiles.Size = new System.Drawing.Size(760, 280);
             this.lvFiles.TabIndex = 0;
             this.lvFiles.View = System.Windows.Forms.View.Details;
-            // 开启拖放功能
             this.lvFiles.AllowDrop = true;
-            // 允许拖动项
             this.lvFiles.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.LvFiles_ItemDrag);
             this.lvFiles.DragEnter += new System.Windows.Forms.DragEventHandler(this.LvFiles_DragEnter);
             this.lvFiles.DragDrop += new System.Windows.Forms.DragEventHandler(this.LvFiles_DragDrop);
-            // 
+            //
             // btnAddFiles
-            // 
+            //
             this.btnAddFiles.Location = new System.Drawing.Point(12, 300);
             this.btnAddFiles.Name = "btnAddFiles";
             this.btnAddFiles.Size = new System.Drawing.Size(120, 35);
             this.btnAddFiles.Text = "添加文件";
             this.btnAddFiles.UseVisualStyleBackColor = true;
-            // 
+            //
             // btnRemove
-            // 
+            //
             this.btnRemove.Location = new System.Drawing.Point(140, 300);
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.Size = new System.Drawing.Size(100, 35);
@@ -94,94 +100,159 @@
             this.btnClear.Location = new System.Drawing.Point(600, 300);
             this.btnClear.Size = new System.Drawing.Size(100, 35);
             this.btnClear.Text = "全部清空";
-            // 
+            //
             // btnSelectOutput
-            // 
+            //
             this.btnSelectOutput.Location = new System.Drawing.Point(12, 350);
             this.btnSelectOutput.Name = "btnSelectOutput";
             this.btnSelectOutput.Size = new System.Drawing.Size(120, 30);
             this.btnSelectOutput.Text = "选择输出文件夹";
-            // 
+            //
             // txtOutputFolder
-            // 
+            //
             this.txtOutputFolder.Location = new System.Drawing.Point(140, 350);
             this.txtOutputFolder.Name = "txtOutputFolder";
             this.txtOutputFolder.Size = new System.Drawing.Size(630, 30);
             this.txtOutputFolder.ReadOnly = true;
-            // 
+            //
             // cmbFormat
-            // 
+            //
             this.cmbFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFormat.Items.AddRange(new object[] { ".mp4", ".mkv", ".avi", ".mov", ".mp3", ".m4a" });
+            this.cmbFormat.Items.AddRange(new object[] { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".ts", ".mp3", ".m4a", ".wav", ".flac", ".aac" });
             this.cmbFormat.Location = new System.Drawing.Point(140, 390);
             this.cmbFormat.Name = "cmbFormat";
-            this.cmbFormat.Size = new System.Drawing.Size(120, 30);
+            this.cmbFormat.Size = new System.Drawing.Size(120, 28);
             this.cmbFormat.SelectedIndex = 0;
-            // 
+            //
             // chkGPU
-            // 
+            //
             this.chkGPU.AutoSize = true;
-            this.chkGPU.Location = new System.Drawing.Point(280, 395);
+            this.chkGPU.Location = new System.Drawing.Point(280, 393);
             this.chkGPU.Name = "chkGPU";
             this.chkGPU.Size = new System.Drawing.Size(120, 20);
-            this.chkGPU.Text = "使用 GPU 加速";
+            this.chkGPU.Text = "硬件解码加速";
             this.chkGPU.Checked = true;
-            // 
+            //
             // grpAdvanced
-            // 
+            //
+            this.grpAdvanced.Controls.Add(this.lblCodec);
+            this.grpAdvanced.Controls.Add(this.cmbCodec);
+            this.grpAdvanced.Controls.Add(this.lblQuality);
+            this.grpAdvanced.Controls.Add(this.txtQuality);
+            this.grpAdvanced.Controls.Add(this.lblQualityTip);
+            this.grpAdvanced.Controls.Add(this.lblPreset);
+            this.grpAdvanced.Controls.Add(this.cmbPreset);
             this.grpAdvanced.Controls.Add(this.lblBitrate);
             this.grpAdvanced.Controls.Add(this.txtBitrate);
+            this.grpAdvanced.Controls.Add(this.lblBitrateTip);
             this.grpAdvanced.Controls.Add(this.lblHeight);
             this.grpAdvanced.Controls.Add(this.txtHeight);
             this.grpAdvanced.Controls.Add(this.lblHeightTip);
             this.grpAdvanced.Location = new System.Drawing.Point(12, 430);
             this.grpAdvanced.Name = "grpAdvanced";
-            this.grpAdvanced.Size = new System.Drawing.Size(760, 110);
+            this.grpAdvanced.Size = new System.Drawing.Size(760, 180);
             this.grpAdvanced.Text = "高级设置（可选）";
-            // 
+            //
+            // lblCodec
+            //
+            this.lblCodec.AutoSize = true;
+            this.lblCodec.Location = new System.Drawing.Point(20, 25);
+            this.lblCodec.Text = "视频编码：";
+            //
+            // cmbCodec
+            //
+            this.cmbCodec.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbCodec.Location = new System.Drawing.Point(150, 22);
+            this.cmbCodec.Name = "cmbCodec";
+            this.cmbCodec.Size = new System.Drawing.Size(250, 28);
+            //
+            // lblQuality
+            //
+            this.lblQuality.AutoSize = true;
+            this.lblQuality.Location = new System.Drawing.Point(20, 55);
+            this.lblQuality.Text = "质量值：";
+            //
+            // txtQuality
+            //
+            this.txtQuality.Location = new System.Drawing.Point(150, 52);
+            this.txtQuality.Name = "txtQuality";
+            this.txtQuality.Size = new System.Drawing.Size(70, 28);
+            this.txtQuality.Text = "23";
+            //
+            // lblQualityTip
+            //
+            this.lblQualityTip.AutoSize = true;
+            this.lblQualityTip.ForeColor = System.Drawing.Color.Gray;
+            this.lblQualityTip.Location = new System.Drawing.Point(230, 55);
+            this.lblQualityTip.Text = "CRF, 0-51, 默认23, 越小质量越高";
+            //
+            // lblPreset
+            //
+            this.lblPreset.AutoSize = true;
+            this.lblPreset.Location = new System.Drawing.Point(20, 85);
+            this.lblPreset.Text = "编码预设：";
+            //
+            // cmbPreset
+            //
+            this.cmbPreset.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPreset.Items.AddRange(new object[] { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow" });
+            this.cmbPreset.Location = new System.Drawing.Point(150, 82);
+            this.cmbPreset.Name = "cmbPreset";
+            this.cmbPreset.Size = new System.Drawing.Size(150, 28);
+            this.cmbPreset.SelectedIndex = 5;
+            //
             // lblBitrate
-            // 
+            //
             this.lblBitrate.AutoSize = true;
-            this.lblBitrate.Location = new System.Drawing.Point(20, 25);
-            this.lblBitrate.Text = "视频码率 (kbps)：";
-            // 
+            this.lblBitrate.Location = new System.Drawing.Point(20, 115);
+            this.lblBitrate.Text = "码率上限 (kbps)：";
+            //
             // txtBitrate
-            // 
-            this.txtBitrate.Location = new System.Drawing.Point(150, 22);
-            this.txtBitrate.Size = new System.Drawing.Size(100, 25);
-            // 
+            //
+            this.txtBitrate.Location = new System.Drawing.Point(150, 112);
+            this.txtBitrate.Name = "txtBitrate";
+            this.txtBitrate.Size = new System.Drawing.Size(100, 28);
+            //
+            // lblBitrateTip
+            //
+            this.lblBitrateTip.AutoSize = true;
+            this.lblBitrateTip.ForeColor = System.Drawing.Color.Gray;
+            this.lblBitrateTip.Location = new System.Drawing.Point(260, 115);
+            this.lblBitrateTip.Text = "可选最大码率上限";
+            //
             // lblHeight
-            // 
+            //
             this.lblHeight.AutoSize = true;
-            this.lblHeight.Location = new System.Drawing.Point(20, 60);
-            this.lblHeight.Text = "目标高度 (像素)：";
-            // 
+            this.lblHeight.Location = new System.Drawing.Point(20, 148);
+            this.lblHeight.Text = "高度 (px)：";
+            //
             // txtHeight
-            // 
-            this.txtHeight.Location = new System.Drawing.Point(150, 57);
-            this.txtHeight.Size = new System.Drawing.Size(100, 25);
-            // 
+            //
+            this.txtHeight.Location = new System.Drawing.Point(150, 145);
+            this.txtHeight.Name = "txtHeight";
+            this.txtHeight.Size = new System.Drawing.Size(100, 28);
+            //
             // lblHeightTip
-            // 
+            //
             this.lblHeightTip.AutoSize = true;
             this.lblHeightTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblHeightTip.Location = new System.Drawing.Point(270, 60);
-            this.lblHeightTip.Text = "宽度会自动计算为偶数（推荐 720 / 1080 / 2160）";
-            // 
+            this.lblHeightTip.Location = new System.Drawing.Point(260, 148);
+            this.lblHeightTip.Text = "宽度自动计算为偶数（推荐 720 / 1080）";
+            //
             // btnStart
-            // 
+            //
             this.btnStart.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold);
-            this.btnStart.Location = new System.Drawing.Point(300, 560);
+            this.btnStart.Location = new System.Drawing.Point(300, 630);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(200, 50);
             this.btnStart.Text = "开始转换";
             this.btnStart.UseVisualStyleBackColor = true;
-            // 
-            // ConvertForm_more
-            // 
+            //
+            // ConvertForm
+            //
             this.Icon = global::FFmpegKit.Properties.Resources.LOGO_64;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 620);
+            this.ClientSize = new System.Drawing.Size(784, 700);
             this.Controls.Add(this.lvFiles);
             this.Controls.Add(this.btnAddFiles);
             this.Controls.Add(this.btnRemove);
@@ -199,7 +270,7 @@
             this.Font = new System.Drawing.Font("微软雅黑", 10F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.Name = "ConvertForm_more";
+            this.Name = "ConvertForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "FFmpegKit - 音视频格式转换";
             this.grpAdvanced.ResumeLayout(false);
@@ -221,8 +292,16 @@
         private System.Windows.Forms.ComboBox cmbFormat;
         private System.Windows.Forms.CheckBox chkGPU;
         private System.Windows.Forms.GroupBox grpAdvanced;
+        private System.Windows.Forms.Label lblCodec;
+        private System.Windows.Forms.ComboBox cmbCodec;
+        private System.Windows.Forms.Label lblQuality;
+        private System.Windows.Forms.TextBox txtQuality;
+        private System.Windows.Forms.Label lblQualityTip;
+        private System.Windows.Forms.Label lblPreset;
+        private System.Windows.Forms.ComboBox cmbPreset;
         private System.Windows.Forms.Label lblBitrate;
         private System.Windows.Forms.TextBox txtBitrate;
+        private System.Windows.Forms.Label lblBitrateTip;
         private System.Windows.Forms.Label lblHeight;
         private System.Windows.Forms.TextBox txtHeight;
         private System.Windows.Forms.Label lblHeightTip;
