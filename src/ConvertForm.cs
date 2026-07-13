@@ -66,13 +66,22 @@ namespace FFmpegKit
             }
             if (cmbCodec.Items.Count > 0)
                 cmbCodec.SelectedIndex = 0;
+            UpdateCodecTipVisibility();
         }
 
         // ====================== 编码器联动 ======================
 
         private void CmbCodec_SelectedIndexChanged(object sender, EventArgs e)
         {
+            UpdateCodecTipVisibility();
             UpdateCodecDependentControls();
+        }
+
+        // ====================== 编码器未选提示 ======================
+
+        private void UpdateCodecTipVisibility()
+        {
+            lblCodecTip.Visible = cmbCodec.SelectedItem == null;
         }
 
         private void UpdateCodecDependentControls()
@@ -393,6 +402,11 @@ namespace FFmpegKit
             }
 
             FFmpegHelper.VideoCodecInfo codec = cmbCodec.SelectedItem as FFmpegHelper.VideoCodecInfo;
+            if (codec == null)
+            {
+                MessageBox.Show("请选择视频编码器", "提示");
+                return;
+            }
             int qualityValue = 23;
             if (int.TryParse(txtQuality.Text, out int q))
                 qualityValue = q;

@@ -1358,13 +1358,6 @@ namespace FFmpegKit
         /// </summary>
         private static string GetEffectiveVideoEncoder(VideoCodecInfo codec, bool useGpu)
         {
-            if (codec == null)
-            {
-                if (useGpu)
-                    return GetGpuVideoCodec(ConfigManager.DefaultGPU.ToLower());
-                else
-                    return "libx264";
-            }
             return codec.FFmpegEncoder;
         }
 
@@ -1391,34 +1384,26 @@ namespace FFmpegKit
             }
 
             // 质量参数
-            if (codec == null)
+            switch (codec.QualityType)
             {
-                // 防御性回退：编码器未指定时沿用 GPU 设置
-                sb.Append(GetGpuQualityParams(ConfigManager.DefaultGPU.ToLower(), qualityValue, useGpu));
-            }
-            else
-            {
-                switch (codec.QualityType)
-                {
-                    case "crf":
-                        if (codec.FFmpegEncoder == "libvpx-vp9")
-                            sb.Append("-crf " + qualityValue + " -b:v 0 ");
-                        else
-                            sb.Append("-crf " + qualityValue + " ");
-                        break;
-                    case "qp":
-                        if (codec.FFmpegEncoder == "mpeg2video" || codec.FFmpegEncoder == "libxvid")
-                            sb.Append("-q:v " + qualityValue + " ");
-                        else  // QSV 使用 -global_quality
-                            sb.Append("-global_quality " + qualityValue + " ");
-                        break;
-                    case "cq":  // NVENC: VBR 模式 + CQ 目标
-                        sb.Append("-rc vbr -cq " + qualityValue + " -qmin " + qualityValue + " -qmax " + qualityValue + " ");
-                        break;
-                    case "cqp":  // AMF: 恒定QP模式
-                        sb.Append("-rc cqp -qp_i " + qualityValue + " -qp_p " + qualityValue + " ");
-                        break;
-                }
+                case "crf":
+                    if (codec.FFmpegEncoder == "libvpx-vp9")
+                        sb.Append("-crf " + qualityValue + " -b:v 0 ");
+                    else
+                        sb.Append("-crf " + qualityValue + " ");
+                    break;
+                case "qp":
+                    if (codec.FFmpegEncoder == "mpeg2video" || codec.FFmpegEncoder == "libxvid")
+                        sb.Append("-q:v " + qualityValue + " ");
+                    else  // QSV 使用 -global_quality
+                        sb.Append("-global_quality " + qualityValue + " ");
+                    break;
+                case "cq":  // NVENC: VBR 模式 + CQ 目标
+                    sb.Append("-rc vbr -cq " + qualityValue + " -qmin " + qualityValue + " -qmax " + qualityValue + " ");
+                    break;
+                case "cqp":  // AMF: 恒定QP模式
+                    sb.Append("-rc cqp -qp_i " + qualityValue + " -qp_p " + qualityValue + " ");
+                    break;
             }
 
             return sb.ToString();

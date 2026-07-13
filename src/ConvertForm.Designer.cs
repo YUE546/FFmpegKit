@@ -33,6 +33,7 @@
             this.grpAdvanced = new System.Windows.Forms.GroupBox();
             this.lblCodec = new System.Windows.Forms.Label();
             this.cmbCodec = new System.Windows.Forms.ComboBox();
+            this.lblCodecTip = new System.Windows.Forms.Label();
             this.lblQuality = new System.Windows.Forms.Label();
             this.txtQuality = new System.Windows.Forms.TextBox();
             this.lblQualityTip = new System.Windows.Forms.Label();
@@ -137,6 +138,7 @@
             //
             this.grpAdvanced.Controls.Add(this.lblCodec);
             this.grpAdvanced.Controls.Add(this.cmbCodec);
+            this.grpAdvanced.Controls.Add(this.lblCodecTip);
             this.grpAdvanced.Controls.Add(this.lblQuality);
             this.grpAdvanced.Controls.Add(this.txtQuality);
             this.grpAdvanced.Controls.Add(this.lblQualityTip);
@@ -165,6 +167,15 @@
             this.cmbCodec.Location = new System.Drawing.Point(150, 22);
             this.cmbCodec.Name = "cmbCodec";
             this.cmbCodec.Size = new System.Drawing.Size(250, 28);
+            //
+            // lblCodecTip
+            //
+            this.lblCodecTip.AutoSize = true;
+            this.lblCodecTip.ForeColor = System.Drawing.Color.Red;
+            this.lblCodecTip.Location = new System.Drawing.Point(410, 25);
+            this.lblCodecTip.Name = "lblCodecTip";
+            this.lblCodecTip.Text = "请选择视频编码器";
+            this.lblCodecTip.Visible = false;
             //
             // lblQuality
             //
@@ -294,6 +305,7 @@
         private System.Windows.Forms.GroupBox grpAdvanced;
         private System.Windows.Forms.Label lblCodec;
         private System.Windows.Forms.ComboBox cmbCodec;
+        private System.Windows.Forms.Label lblCodecTip;
         private System.Windows.Forms.Label lblQuality;
         private System.Windows.Forms.TextBox txtQuality;
         private System.Windows.Forms.Label lblQualityTip;
