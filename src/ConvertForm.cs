@@ -147,9 +147,7 @@ namespace FFmpegKit
             lblQualityTip.Enabled = !isAudioFormat;
             lblPreset.Enabled = !isAudioFormat && cmbPreset.Items.Count > 0;
             cmbPreset.Enabled = !isAudioFormat && cmbPreset.Items.Count > 0;
-            lblWidth.Enabled = !isAudioFormat;
-            txtWidth.Enabled = !isAudioFormat;
-            lblX.Enabled = !isAudioFormat;
+            lblHeight.Enabled = !isAudioFormat;
             txtHeight.Enabled = !isAudioFormat;
             lblHeightTip.Enabled = !isAudioFormat;
 
@@ -405,10 +403,6 @@ namespace FFmpegKit
             if (int.TryParse(txtBitrate.Text, out int b) && b > 0)
                 bitrate = b;
 
-            int? width = null;
-            if (int.TryParse(txtWidth.Text, out int w) && w > 0)
-                width = w;
-
             int? height = null;
             if (int.TryParse(txtHeight.Text, out int h) && h > 0)
                 height = h;
@@ -423,7 +417,6 @@ namespace FFmpegKit
                 qualityValue,
                 preset,
                 bitrate,
-                width,
                 height
             );
         }
