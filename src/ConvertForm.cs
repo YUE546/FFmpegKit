@@ -30,6 +30,19 @@ namespace FFmpegKit
             lvFiles.ColumnClick += LvFiles_ColumnClick;
             cmbCodec.SelectedIndexChanged += CmbCodec_SelectedIndexChanged;
             cmbFormat.SelectedIndexChanged += CmbFormat_SelectedIndexChanged;
+            rbQuality.CheckedChanged += RbRateMode_CheckedChanged;
+            rbBitrate.CheckedChanged += RbRateMode_CheckedChanged;
+        }
+
+        // ====================== 码率/质量模式联动 ======================
+
+        private void RbRateMode_CheckedChanged(object sender, EventArgs e)
+        {
+            bool qualityMode = rbQuality.Checked;
+            txtQuality.Enabled = qualityMode;
+            lblQualityTip.Enabled = qualityMode;
+            txtAvgBitrate.Enabled = !qualityMode;
+            lblAvgBitrateTip.Enabled = !qualityMode;
         }
 
         private void ConvertForm_more_Load(object sender, EventArgs e)
@@ -52,6 +65,7 @@ namespace FFmpegKit
             txtOutputFolder.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             UpdateCodecDependentControls();
             UpdateFormatDependentControls();
+            RbRateMode_CheckedChanged(null, null);
         }
 
         // ====================== 编码器列表填充 ======================
@@ -409,6 +423,15 @@ namespace FFmpegKit
             if (int.TryParse(txtQuality.Text, out int q))
                 qualityValue = q;
 
+            int? avgBitrate = null;
+            if (rbBitrate.Checked && int.TryParse(txtAvgBitrate.Text, out int ab) && ab > 0)
+                avgBitrate = ab;
+            else if (rbBitrate.Checked)
+            {
+                MessageBox.Show("码率模式需填写有效的平均码率", "提示");
+                return;
+            }
+
             string preset = cmbPreset.SelectedItem as string;
 
             int? bitrate = null;
@@ -427,6 +450,7 @@ namespace FFmpegKit
                 chkGPU.Checked,
                 codec,
                 qualityValue,
+                avgBitrate,
                 preset,
                 bitrate,
                 height

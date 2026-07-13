@@ -33,6 +33,7 @@ namespace FFmpegKit
             bool useGpu,
             VideoCodecInfo videoCodec,
             int qualityValue,
+            int? avgBitrateKbps,
             string preset,
             int? bitrateKbps = null,
             int? targetHeight = null)
@@ -77,8 +78,7 @@ namespace FFmpegKit
 
                     // 生成黑屏视频源 + 音频同步
                     sb.Append($"-f lavfi -i color=c=black:s={width}x{height}:r=30 ");
-                    string codecParams = BuildCodecParams(videoCodec, qualityValue, preset);
-                    sb.Append(codecParams);
+                    sb.Append(BuildCodecParams(videoCodec, qualityValue, avgBitrateKbps, preset));
                     sb.Append("-c:a aac -b:a 192k -shortest ");   // -shortest 保证时长一致
                 }
                 else
@@ -86,8 +86,7 @@ namespace FFmpegKit
                     // ==================== 正常音视频转换 ====================
                     if (isOutputVideo)   // 输出是视频格式
                     {
-                        string codecParams = BuildCodecParams(videoCodec, qualityValue, preset);
-                        sb.Append(codecParams);
+                        sb.Append(BuildCodecParams(videoCodec, qualityValue, avgBitrateKbps, preset));
 
                         if (targetHeight.HasValue && targetHeight > 0)
                         {
@@ -111,6 +110,7 @@ namespace FFmpegKit
                             }
                         }
 
+                        // 码率上限：质量模式/码率模式都可附加 -maxrate -bufsize
                         if (bitrateKbps.HasValue && bitrateKbps > 0)
                             sb.Append($"-maxrate {bitrateKbps}k -bufsize {bitrateKbps * 2}k ");
                     }
@@ -1343,9 +1343,9 @@ namespace FFmpegKit
         }
 
         /// <summary>
-        /// 根据编码器信息构建编码参数字符串（编码器 + 预设 + 质量参数）
+        /// 根据编码器信息构建编码参数字符串（编码器 + 预设 + 质量/码率参数）
         /// </summary>
-        private static string BuildCodecParams(VideoCodecInfo codec, int qualityValue, string preset)
+        private static string BuildCodecParams(VideoCodecInfo codec, int qualityValue, int? avgBitrateKbps, string preset)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -1364,27 +1364,34 @@ namespace FFmpegKit
                 }
             }
 
-            // 质量参数
-            switch (codec.QualityType)
+            // 码率模式：用 -b:v 指定平均码率；质量模式：用 crf/qp/cq/cqp 等质量参数
+            if (avgBitrateKbps.HasValue && avgBitrateKbps.Value > 0)
             {
-                case "crf":
-                    if (codec.FFmpegEncoder == "libvpx-vp9")
-                        sb.Append("-crf " + qualityValue + " -b:v 0 ");
-                    else
-                        sb.Append("-crf " + qualityValue + " ");
-                    break;
-                case "qp":
-                    if (codec.FFmpegEncoder == "mpeg2video" || codec.FFmpegEncoder == "libxvid")
-                        sb.Append("-q:v " + qualityValue + " ");
-                    else  // QSV 使用 -global_quality
-                        sb.Append("-global_quality " + qualityValue + " ");
-                    break;
-                case "cq":  // NVENC: VBR 模式 + CQ 目标
-                    sb.Append("-rc vbr -cq " + qualityValue + " -qmin " + qualityValue + " -qmax " + qualityValue + " ");
-                    break;
-                case "cqp":  // AMF: 恒定QP模式
-                    sb.Append("-rc cqp -qp_i " + qualityValue + " -qp_p " + qualityValue + " ");
-                    break;
+                sb.Append("-b:v " + avgBitrateKbps.Value + "k ");
+            }
+            else
+            {
+                switch (codec.QualityType)
+                {
+                    case "crf":
+                        if (codec.FFmpegEncoder == "libvpx-vp9")
+                            sb.Append("-crf " + qualityValue + " -b:v 0 ");
+                        else
+                            sb.Append("-crf " + qualityValue + " ");
+                        break;
+                    case "qp":
+                        if (codec.FFmpegEncoder == "mpeg2video" || codec.FFmpegEncoder == "libxvid")
+                            sb.Append("-q:v " + qualityValue + " ");
+                        else  // QSV 使用 -global_quality
+                            sb.Append("-global_quality " + qualityValue + " ");
+                        break;
+                    case "cq":  // NVENC: VBR 模式 + CQ 目标
+                        sb.Append("-rc vbr -cq " + qualityValue + " -qmin " + qualityValue + " -qmax " + qualityValue + " ");
+                        break;
+                    case "cqp":  // AMF: 恒定QP模式
+                        sb.Append("-rc cqp -qp_i " + qualityValue + " -qp_p " + qualityValue + " ");
+                        break;
+                }
             }
 
             return sb.ToString();
