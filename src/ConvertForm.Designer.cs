@@ -33,9 +33,15 @@
             this.grpAdvanced = new System.Windows.Forms.GroupBox();
             this.lblCodec = new System.Windows.Forms.Label();
             this.cmbCodec = new System.Windows.Forms.ComboBox();
+            this.lblCodecTip = new System.Windows.Forms.Label();
+            this.rbQuality = new System.Windows.Forms.RadioButton();
             this.lblQuality = new System.Windows.Forms.Label();
             this.txtQuality = new System.Windows.Forms.TextBox();
             this.lblQualityTip = new System.Windows.Forms.Label();
+            this.rbBitrate = new System.Windows.Forms.RadioButton();
+            this.lblAvgBitrate = new System.Windows.Forms.Label();
+            this.txtAvgBitrate = new System.Windows.Forms.TextBox();
+            this.lblAvgBitrateTip = new System.Windows.Forms.Label();
             this.lblPreset = new System.Windows.Forms.Label();
             this.cmbPreset = new System.Windows.Forms.ComboBox();
             this.lblBitrate = new System.Windows.Forms.Label();
@@ -137,9 +143,15 @@
             //
             this.grpAdvanced.Controls.Add(this.lblCodec);
             this.grpAdvanced.Controls.Add(this.cmbCodec);
+            this.grpAdvanced.Controls.Add(this.lblCodecTip);
+            this.grpAdvanced.Controls.Add(this.rbQuality);
             this.grpAdvanced.Controls.Add(this.lblQuality);
             this.grpAdvanced.Controls.Add(this.txtQuality);
             this.grpAdvanced.Controls.Add(this.lblQualityTip);
+            this.grpAdvanced.Controls.Add(this.rbBitrate);
+            this.grpAdvanced.Controls.Add(this.lblAvgBitrate);
+            this.grpAdvanced.Controls.Add(this.txtAvgBitrate);
+            this.grpAdvanced.Controls.Add(this.lblAvgBitrateTip);
             this.grpAdvanced.Controls.Add(this.lblPreset);
             this.grpAdvanced.Controls.Add(this.cmbPreset);
             this.grpAdvanced.Controls.Add(this.lblBitrate);
@@ -150,7 +162,7 @@
             this.grpAdvanced.Controls.Add(this.lblHeightTip);
             this.grpAdvanced.Location = new System.Drawing.Point(12, 430);
             this.grpAdvanced.Name = "grpAdvanced";
-            this.grpAdvanced.Size = new System.Drawing.Size(760, 180);
+            this.grpAdvanced.Size = new System.Drawing.Size(760, 240);
             this.grpAdvanced.Text = "高级设置（可选）";
             //
             // lblCodec
@@ -166,15 +178,34 @@
             this.cmbCodec.Name = "cmbCodec";
             this.cmbCodec.Size = new System.Drawing.Size(250, 28);
             //
+            // lblCodecTip
+            //
+            this.lblCodecTip.AutoSize = true;
+            this.lblCodecTip.ForeColor = System.Drawing.Color.Red;
+            this.lblCodecTip.Location = new System.Drawing.Point(410, 25);
+            this.lblCodecTip.Name = "lblCodecTip";
+            this.lblCodecTip.Text = "请选择视频编码器";
+            this.lblCodecTip.Visible = false;
+            //
+            // rbQuality
+            //
+            this.rbQuality.AutoSize = true;
+            this.rbQuality.Checked = true;
+            this.rbQuality.Location = new System.Drawing.Point(20, 55);
+            this.rbQuality.Name = "rbQuality";
+            this.rbQuality.TabStop = true;
+            this.rbQuality.Text = "质量模式：";
+            this.rbQuality.UseVisualStyleBackColor = true;
+            //
             // lblQuality
             //
             this.lblQuality.AutoSize = true;
-            this.lblQuality.Location = new System.Drawing.Point(20, 55);
+            this.lblQuality.Location = new System.Drawing.Point(140, 58);
             this.lblQuality.Text = "质量值：";
             //
             // txtQuality
             //
-            this.txtQuality.Location = new System.Drawing.Point(150, 52);
+            this.txtQuality.Location = new System.Drawing.Point(225, 55);
             this.txtQuality.Name = "txtQuality";
             this.txtQuality.Size = new System.Drawing.Size(70, 28);
             this.txtQuality.Text = "23";
@@ -183,20 +214,48 @@
             //
             this.lblQualityTip.AutoSize = true;
             this.lblQualityTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblQualityTip.Location = new System.Drawing.Point(230, 55);
+            this.lblQualityTip.Location = new System.Drawing.Point(305, 58);
             this.lblQualityTip.Text = "CRF, 0-51, 默认23, 越小质量越高";
+            //
+            // rbBitrate
+            //
+            this.rbBitrate.AutoSize = true;
+            this.rbBitrate.Location = new System.Drawing.Point(20, 90);
+            this.rbBitrate.Name = "rbBitrate";
+            this.rbBitrate.TabStop = true;
+            this.rbBitrate.Text = "码率模式：";
+            this.rbBitrate.UseVisualStyleBackColor = true;
+            //
+            // lblAvgBitrate
+            //
+            this.lblAvgBitrate.AutoSize = true;
+            this.lblAvgBitrate.Location = new System.Drawing.Point(140, 93);
+            this.lblAvgBitrate.Text = "平均码率：";
+            //
+            // txtAvgBitrate
+            //
+            this.txtAvgBitrate.Location = new System.Drawing.Point(225, 90);
+            this.txtAvgBitrate.Name = "txtAvgBitrate";
+            this.txtAvgBitrate.Size = new System.Drawing.Size(70, 28);
+            //
+            // lblAvgBitrateTip
+            //
+            this.lblAvgBitrateTip.AutoSize = true;
+            this.lblAvgBitrateTip.ForeColor = System.Drawing.Color.Gray;
+            this.lblAvgBitrateTip.Location = new System.Drawing.Point(305, 93);
+            this.lblAvgBitrateTip.Text = "kbps";
             //
             // lblPreset
             //
             this.lblPreset.AutoSize = true;
-            this.lblPreset.Location = new System.Drawing.Point(20, 85);
+            this.lblPreset.Location = new System.Drawing.Point(20, 125);
             this.lblPreset.Text = "编码预设：";
             //
             // cmbPreset
             //
             this.cmbPreset.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPreset.Items.AddRange(new object[] { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow" });
-            this.cmbPreset.Location = new System.Drawing.Point(150, 82);
+            this.cmbPreset.Location = new System.Drawing.Point(150, 122);
             this.cmbPreset.Name = "cmbPreset";
             this.cmbPreset.Size = new System.Drawing.Size(150, 28);
             this.cmbPreset.SelectedIndex = 5;
@@ -204,12 +263,12 @@
             // lblBitrate
             //
             this.lblBitrate.AutoSize = true;
-            this.lblBitrate.Location = new System.Drawing.Point(20, 115);
+            this.lblBitrate.Location = new System.Drawing.Point(20, 160);
             this.lblBitrate.Text = "码率上限 (kbps)：";
             //
             // txtBitrate
             //
-            this.txtBitrate.Location = new System.Drawing.Point(150, 112);
+            this.txtBitrate.Location = new System.Drawing.Point(150, 157);
             this.txtBitrate.Name = "txtBitrate";
             this.txtBitrate.Size = new System.Drawing.Size(100, 28);
             //
@@ -217,18 +276,18 @@
             //
             this.lblBitrateTip.AutoSize = true;
             this.lblBitrateTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblBitrateTip.Location = new System.Drawing.Point(260, 115);
-            this.lblBitrateTip.Text = "可选最大码率上限";
+            this.lblBitrateTip.Location = new System.Drawing.Point(260, 160);
+            this.lblBitrateTip.Text = "可选，两种模式都生效";
             //
             // lblHeight
             //
             this.lblHeight.AutoSize = true;
-            this.lblHeight.Location = new System.Drawing.Point(20, 148);
+            this.lblHeight.Location = new System.Drawing.Point(20, 195);
             this.lblHeight.Text = "高度 (px)：";
             //
             // txtHeight
             //
-            this.txtHeight.Location = new System.Drawing.Point(150, 145);
+            this.txtHeight.Location = new System.Drawing.Point(150, 192);
             this.txtHeight.Name = "txtHeight";
             this.txtHeight.Size = new System.Drawing.Size(100, 28);
             //
@@ -236,13 +295,13 @@
             //
             this.lblHeightTip.AutoSize = true;
             this.lblHeightTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblHeightTip.Location = new System.Drawing.Point(260, 148);
+            this.lblHeightTip.Location = new System.Drawing.Point(260, 195);
             this.lblHeightTip.Text = "宽度自动计算为偶数（推荐 720 / 1080）";
             //
             // btnStart
             //
             this.btnStart.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold);
-            this.btnStart.Location = new System.Drawing.Point(300, 630);
+            this.btnStart.Location = new System.Drawing.Point(300, 690);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(200, 50);
             this.btnStart.Text = "开始转换";
@@ -252,7 +311,7 @@
             //
             this.Icon = global::FFmpegKit.Properties.Resources.LOGO_64;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 700);
+            this.ClientSize = new System.Drawing.Size(784, 760);
             this.Controls.Add(this.lvFiles);
             this.Controls.Add(this.btnAddFiles);
             this.Controls.Add(this.btnRemove);
@@ -294,9 +353,15 @@
         private System.Windows.Forms.GroupBox grpAdvanced;
         private System.Windows.Forms.Label lblCodec;
         private System.Windows.Forms.ComboBox cmbCodec;
+        private System.Windows.Forms.Label lblCodecTip;
+        private System.Windows.Forms.RadioButton rbQuality;
         private System.Windows.Forms.Label lblQuality;
         private System.Windows.Forms.TextBox txtQuality;
         private System.Windows.Forms.Label lblQualityTip;
+        private System.Windows.Forms.RadioButton rbBitrate;
+        private System.Windows.Forms.Label lblAvgBitrate;
+        private System.Windows.Forms.TextBox txtAvgBitrate;
+        private System.Windows.Forms.Label lblAvgBitrateTip;
         private System.Windows.Forms.Label lblPreset;
         private System.Windows.Forms.ComboBox cmbPreset;
         private System.Windows.Forms.Label lblBitrate;
