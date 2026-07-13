@@ -200,12 +200,12 @@
             // lblQuality
             //
             this.lblQuality.AutoSize = true;
-            this.lblQuality.Location = new System.Drawing.Point(110, 58);
+            this.lblQuality.Location = new System.Drawing.Point(140, 58);
             this.lblQuality.Text = "质量值：";
             //
             // txtQuality
             //
-            this.txtQuality.Location = new System.Drawing.Point(185, 55);
+            this.txtQuality.Location = new System.Drawing.Point(215, 55);
             this.txtQuality.Name = "txtQuality";
             this.txtQuality.Size = new System.Drawing.Size(70, 28);
             this.txtQuality.Text = "23";
@@ -214,7 +214,7 @@
             //
             this.lblQualityTip.AutoSize = true;
             this.lblQualityTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblQualityTip.Location = new System.Drawing.Point(265, 58);
+            this.lblQualityTip.Location = new System.Drawing.Point(295, 58);
             this.lblQualityTip.Text = "CRF, 0-51, 默认23, 越小质量越高";
             //
             // rbBitrate
@@ -229,12 +229,12 @@
             // lblAvgBitrate
             //
             this.lblAvgBitrate.AutoSize = true;
-            this.lblAvgBitrate.Location = new System.Drawing.Point(110, 93);
+            this.lblAvgBitrate.Location = new System.Drawing.Point(140, 93);
             this.lblAvgBitrate.Text = "平均码率：";
             //
             // txtAvgBitrate
             //
-            this.txtAvgBitrate.Location = new System.Drawing.Point(185, 90);
+            this.txtAvgBitrate.Location = new System.Drawing.Point(215, 90);
             this.txtAvgBitrate.Name = "txtAvgBitrate";
             this.txtAvgBitrate.Size = new System.Drawing.Size(70, 28);
             //
@@ -242,7 +242,7 @@
             //
             this.lblAvgBitrateTip.AutoSize = true;
             this.lblAvgBitrateTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblAvgBitrateTip.Location = new System.Drawing.Point(265, 93);
+            this.lblAvgBitrateTip.Location = new System.Drawing.Point(295, 93);
             this.lblAvgBitrateTip.Text = "kbps";
             //
             // lblPreset
