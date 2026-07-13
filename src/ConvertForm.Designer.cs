@@ -162,7 +162,7 @@
             this.grpAdvanced.Controls.Add(this.lblHeightTip);
             this.grpAdvanced.Location = new System.Drawing.Point(12, 430);
             this.grpAdvanced.Name = "grpAdvanced";
-            this.grpAdvanced.Size = new System.Drawing.Size(760, 210);
+            this.grpAdvanced.Size = new System.Drawing.Size(760, 240);
             this.grpAdvanced.Text = "高级设置（可选）";
             //
             // lblCodec
@@ -205,7 +205,7 @@
             //
             // txtQuality
             //
-            this.txtQuality.Location = new System.Drawing.Point(180, 55);
+            this.txtQuality.Location = new System.Drawing.Point(185, 55);
             this.txtQuality.Name = "txtQuality";
             this.txtQuality.Size = new System.Drawing.Size(70, 28);
             this.txtQuality.Text = "23";
@@ -214,13 +214,13 @@
             //
             this.lblQualityTip.AutoSize = true;
             this.lblQualityTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblQualityTip.Location = new System.Drawing.Point(260, 58);
+            this.lblQualityTip.Location = new System.Drawing.Point(265, 58);
             this.lblQualityTip.Text = "CRF, 0-51, 默认23, 越小质量越高";
             //
             // rbBitrate
             //
             this.rbBitrate.AutoSize = true;
-            this.rbBitrate.Location = new System.Drawing.Point(20, 88);
+            this.rbBitrate.Location = new System.Drawing.Point(20, 90);
             this.rbBitrate.Name = "rbBitrate";
             this.rbBitrate.TabStop = true;
             this.rbBitrate.Text = "码率模式：";
@@ -229,12 +229,12 @@
             // lblAvgBitrate
             //
             this.lblAvgBitrate.AutoSize = true;
-            this.lblAvgBitrate.Location = new System.Drawing.Point(110, 91);
+            this.lblAvgBitrate.Location = new System.Drawing.Point(110, 93);
             this.lblAvgBitrate.Text = "平均码率：";
             //
             // txtAvgBitrate
             //
-            this.txtAvgBitrate.Location = new System.Drawing.Point(180, 88);
+            this.txtAvgBitrate.Location = new System.Drawing.Point(185, 90);
             this.txtAvgBitrate.Name = "txtAvgBitrate";
             this.txtAvgBitrate.Size = new System.Drawing.Size(70, 28);
             //
@@ -242,20 +242,20 @@
             //
             this.lblAvgBitrateTip.AutoSize = true;
             this.lblAvgBitrateTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblAvgBitrateTip.Location = new System.Drawing.Point(260, 91);
+            this.lblAvgBitrateTip.Location = new System.Drawing.Point(265, 93);
             this.lblAvgBitrateTip.Text = "kbps";
             //
             // lblPreset
             //
             this.lblPreset.AutoSize = true;
-            this.lblPreset.Location = new System.Drawing.Point(20, 121);
+            this.lblPreset.Location = new System.Drawing.Point(20, 125);
             this.lblPreset.Text = "编码预设：";
             //
             // cmbPreset
             //
             this.cmbPreset.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPreset.Items.AddRange(new object[] { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow" });
-            this.cmbPreset.Location = new System.Drawing.Point(150, 118);
+            this.cmbPreset.Location = new System.Drawing.Point(150, 122);
             this.cmbPreset.Name = "cmbPreset";
             this.cmbPreset.Size = new System.Drawing.Size(150, 28);
             this.cmbPreset.SelectedIndex = 5;
@@ -263,12 +263,12 @@
             // lblBitrate
             //
             this.lblBitrate.AutoSize = true;
-            this.lblBitrate.Location = new System.Drawing.Point(20, 151);
+            this.lblBitrate.Location = new System.Drawing.Point(20, 160);
             this.lblBitrate.Text = "码率上限 (kbps)：";
             //
             // txtBitrate
             //
-            this.txtBitrate.Location = new System.Drawing.Point(150, 148);
+            this.txtBitrate.Location = new System.Drawing.Point(150, 157);
             this.txtBitrate.Name = "txtBitrate";
             this.txtBitrate.Size = new System.Drawing.Size(100, 28);
             //
@@ -276,18 +276,18 @@
             //
             this.lblBitrateTip.AutoSize = true;
             this.lblBitrateTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblBitrateTip.Location = new System.Drawing.Point(260, 151);
+            this.lblBitrateTip.Location = new System.Drawing.Point(260, 160);
             this.lblBitrateTip.Text = "可选，两种模式都生效";
             //
             // lblHeight
             //
             this.lblHeight.AutoSize = true;
-            this.lblHeight.Location = new System.Drawing.Point(20, 181);
+            this.lblHeight.Location = new System.Drawing.Point(20, 195);
             this.lblHeight.Text = "高度 (px)：";
             //
             // txtHeight
             //
-            this.txtHeight.Location = new System.Drawing.Point(150, 178);
+            this.txtHeight.Location = new System.Drawing.Point(150, 192);
             this.txtHeight.Name = "txtHeight";
             this.txtHeight.Size = new System.Drawing.Size(100, 28);
             //
@@ -295,13 +295,13 @@
             //
             this.lblHeightTip.AutoSize = true;
             this.lblHeightTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblHeightTip.Location = new System.Drawing.Point(260, 181);
+            this.lblHeightTip.Location = new System.Drawing.Point(260, 195);
             this.lblHeightTip.Text = "宽度自动计算为偶数（推荐 720 / 1080）";
             //
             // btnStart
             //
             this.btnStart.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold);
-            this.btnStart.Location = new System.Drawing.Point(300, 660);
+            this.btnStart.Location = new System.Drawing.Point(300, 690);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(200, 50);
             this.btnStart.Text = "开始转换";
@@ -311,7 +311,7 @@
             //
             this.Icon = global::FFmpegKit.Properties.Resources.LOGO_64;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 730);
+            this.ClientSize = new System.Drawing.Size(784, 760);
             this.Controls.Add(this.lvFiles);
             this.Controls.Add(this.btnAddFiles);
             this.Controls.Add(this.btnRemove);
