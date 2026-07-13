@@ -55,18 +55,11 @@ namespace FFmpegKit
 
                 // ==================== hwaccel 参数 ====================
                 // 硬件编码器自动启用对应 hwaccel；软件编码器根据 GPU checkbox 决定
-                bool useHwAccel = false;
-                if (videoCodec != null && videoCodec.IsHardware)
-                    useHwAccel = true;
-                else if (useGpu && !isInputAudioOnly)
-                    useHwAccel = true;
+                bool useHwAccel = videoCodec.IsHardware || (useGpu && !isInputAudioOnly);
 
                 if (useHwAccel && !isInputAudioOnly)
                 {
-                    string hwGpuType = (videoCodec != null && videoCodec.IsHardware)
-                        ? videoCodec.GpuType
-                        : gpuType;
-
+                    string hwGpuType = videoCodec.IsHardware ? videoCodec.GpuType : gpuType;
                     if (hwGpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
                     // AMF/QSV 及其他统一使用 auto，因为 -hwaccel amf/qsv 在部分 FFmpeg 版本不支持解码
                     else sb.Append("-hwaccel auto ");
@@ -84,8 +77,7 @@ namespace FFmpegKit
 
                     // 生成黑屏视频源 + 音频同步
                     sb.Append($"-f lavfi -i color=c=black:s={width}x{height}:r=30 ");
-                    string videoEncoder = GetEffectiveVideoEncoder(videoCodec, useHwAccel);
-                    string codecParams = BuildCodecParams(videoCodec, videoEncoder, qualityValue, preset, useHwAccel);
+                    string codecParams = BuildCodecParams(videoCodec, qualityValue, preset);
                     sb.Append(codecParams);
                     sb.Append("-c:a aac -b:a 192k -shortest ");   // -shortest 保证时长一致
                 }
@@ -94,13 +86,12 @@ namespace FFmpegKit
                     // ==================== 正常音视频转换 ====================
                     if (isOutputVideo)   // 输出是视频格式
                     {
-                        string videoEncoder = GetEffectiveVideoEncoder(videoCodec, useGpu);
-                        string codecParams = BuildCodecParams(videoCodec, videoEncoder, qualityValue, preset, useGpu);
+                        string codecParams = BuildCodecParams(videoCodec, qualityValue, preset);
                         sb.Append(codecParams);
 
                         if (targetHeight.HasValue && targetHeight > 0)
                         {
-                            bool useNvencScale = videoCodec != null && videoCodec.GpuType == "nvenc" && useHwAccel;
+                            bool useNvencScale = videoCodec.GpuType == "nvenc" && useHwAccel;
                             if (useNvencScale)
                             {
                                 int origW, origH;
@@ -1321,8 +1312,6 @@ namespace FFmpegKit
         /// </summary>
         public static List<string> GetPresetsForCodec(VideoCodecInfo codec)
         {
-            if (codec == null) return new List<string> { "medium" };
-
             // AMF 使用 -quality 参数，值不同于标准 preset
             if (codec.FFmpegEncoder == "h264_amf" || codec.FFmpegEncoder == "hevc_amf")
             {
@@ -1354,24 +1343,16 @@ namespace FFmpegKit
         }
 
         /// <summary>
-        /// 根据编码器信息获取实际使用的 FFmpeg 编码器名称
-        /// </summary>
-        private static string GetEffectiveVideoEncoder(VideoCodecInfo codec, bool useGpu)
-        {
-            return codec.FFmpegEncoder;
-        }
-
-        /// <summary>
         /// 根据编码器信息构建编码参数字符串（编码器 + 预设 + 质量参数）
         /// </summary>
-        private static string BuildCodecParams(VideoCodecInfo codec, string videoEncoder, int qualityValue, string preset, bool useGpu)
+        private static string BuildCodecParams(VideoCodecInfo codec, int qualityValue, string preset)
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.Append("-c:v " + videoEncoder + " ");
+            sb.Append("-c:v " + codec.FFmpegEncoder + " ");
 
             // 预设参数
-            if (!string.IsNullOrEmpty(preset) && codec != null && codec.SupportsPreset)
+            if (!string.IsNullOrEmpty(preset) && codec.SupportsPreset)
             {
                 if (codec.FFmpegEncoder == "h264_amf" || codec.FFmpegEncoder == "hevc_amf")
                 {

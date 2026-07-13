@@ -86,8 +86,6 @@ namespace FFmpegKit
 
         private void UpdateCodecDependentControls()
         {
-            if (cmbCodec.SelectedItem == null) return;
-
             FFmpegHelper.VideoCodecInfo codec = (FFmpegHelper.VideoCodecInfo)cmbCodec.SelectedItem;
 
             // 更新质量提示
