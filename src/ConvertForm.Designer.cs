@@ -41,7 +41,9 @@
             this.lblBitrate = new System.Windows.Forms.Label();
             this.txtBitrate = new System.Windows.Forms.TextBox();
             this.lblBitrateTip = new System.Windows.Forms.Label();
-            this.lblHeight = new System.Windows.Forms.Label();
+            this.lblWidth = new System.Windows.Forms.Label();
+            this.txtWidth = new System.Windows.Forms.TextBox();
+            this.lblX = new System.Windows.Forms.Label();
             this.txtHeight = new System.Windows.Forms.TextBox();
             this.lblHeightTip = new System.Windows.Forms.Label();
             this.btnStart = new System.Windows.Forms.Button();
@@ -145,7 +147,9 @@
             this.grpAdvanced.Controls.Add(this.lblBitrate);
             this.grpAdvanced.Controls.Add(this.txtBitrate);
             this.grpAdvanced.Controls.Add(this.lblBitrateTip);
-            this.grpAdvanced.Controls.Add(this.lblHeight);
+            this.grpAdvanced.Controls.Add(this.lblWidth);
+            this.grpAdvanced.Controls.Add(this.txtWidth);
+            this.grpAdvanced.Controls.Add(this.lblX);
             this.grpAdvanced.Controls.Add(this.txtHeight);
             this.grpAdvanced.Controls.Add(this.lblHeightTip);
             this.grpAdvanced.Location = new System.Drawing.Point(12, 430);
@@ -220,24 +224,36 @@
             this.lblBitrateTip.Location = new System.Drawing.Point(260, 115);
             this.lblBitrateTip.Text = "可选最大码率上限";
             //
-            // lblHeight
+            // lblWidth
             //
-            this.lblHeight.AutoSize = true;
-            this.lblHeight.Location = new System.Drawing.Point(20, 148);
-            this.lblHeight.Text = "高度 (px)：";
+            this.lblWidth.AutoSize = true;
+            this.lblWidth.Location = new System.Drawing.Point(20, 148);
+            this.lblWidth.Text = "宽×高 (px)：";
+            //
+            // txtWidth
+            //
+            this.txtWidth.Location = new System.Drawing.Point(150, 145);
+            this.txtWidth.Name = "txtWidth";
+            this.txtWidth.Size = new System.Drawing.Size(70, 28);
+            //
+            // lblX
+            //
+            this.lblX.AutoSize = true;
+            this.lblX.Location = new System.Drawing.Point(226, 148);
+            this.lblX.Text = "×";
             //
             // txtHeight
             //
-            this.txtHeight.Location = new System.Drawing.Point(150, 145);
+            this.txtHeight.Location = new System.Drawing.Point(240, 145);
             this.txtHeight.Name = "txtHeight";
-            this.txtHeight.Size = new System.Drawing.Size(100, 28);
+            this.txtHeight.Size = new System.Drawing.Size(70, 28);
             //
             // lblHeightTip
             //
             this.lblHeightTip.AutoSize = true;
             this.lblHeightTip.ForeColor = System.Drawing.Color.Gray;
-            this.lblHeightTip.Location = new System.Drawing.Point(260, 148);
-            this.lblHeightTip.Text = "宽度自动计算为偶数（推荐 720 / 1080）";
+            this.lblHeightTip.Location = new System.Drawing.Point(318, 148);
+            this.lblHeightTip.Text = "任一留空则保持原分辨率";
             //
             // btnStart
             //
@@ -302,7 +318,9 @@
         private System.Windows.Forms.Label lblBitrate;
         private System.Windows.Forms.TextBox txtBitrate;
         private System.Windows.Forms.Label lblBitrateTip;
-        private System.Windows.Forms.Label lblHeight;
+        private System.Windows.Forms.Label lblWidth;
+        private System.Windows.Forms.TextBox txtWidth;
+        private System.Windows.Forms.Label lblX;
         private System.Windows.Forms.TextBox txtHeight;
         private System.Windows.Forms.Label lblHeightTip;
         private System.Windows.Forms.Button btnStart;

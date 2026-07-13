@@ -21,10 +21,11 @@ namespace FFmpegKit
         /// <param name="outputFolder">输出文件夹</param>
         /// <param name="outputFormat">输出格式</param>
         /// <param name="useGpu">是否使用GPU加速解码</param>
-        /// <param name="videoCodec">视频编码器选择（null=自动）</param>
+        /// <param name="videoCodec">视频编码器选择（null=回退到 libx264/GPU 默认）</param>
         /// <param name="qualityValue">质量值（CRF/QP/CQ等）</param>
         /// <param name="preset">编码预设</param>
         /// <param name="bitrateKbps">视频码率上限，单位：kbps（可选）</param>
+        /// <param name="targetWidth">目标宽度，单位：像素（可选）</param>
         /// <param name="targetHeight">目标高度，单位：像素（可选）</param>
         public static void ExecuteMultiConvert(
             List<string> inputFiles,
@@ -35,6 +36,7 @@ namespace FFmpegKit
             int qualityValue,
             string preset,
             int? bitrateKbps = null,
+            int? targetWidth = null,
             int? targetHeight = null)
         {
             if (inputFiles.Count == 0) return;
@@ -1147,21 +1149,6 @@ namespace FFmpegKit
         public static List<VideoCodecInfo> GetAvailableVideoCodecs()
         {
             var codecs = new List<VideoCodecInfo>();
-
-            // 自动选项：根据 GPU 设置自动选择编码器
-            codecs.Add(new VideoCodecInfo
-            {
-                DisplayName = "自动（根据GPU设置）",
-                FFmpegEncoder = "auto",
-                QualityType = "crf",
-                QualityLabel = "CRF",
-                DefaultQuality = 20,
-                MinQuality = 0,
-                MaxQuality = 51,
-                IsHardware = false,
-                GpuType = "",
-                SupportsPreset = true
-            });
 
             // 软件编码器
             codecs.Add(new VideoCodecInfo
