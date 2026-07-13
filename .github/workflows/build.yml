@@ -1,0 +1,41 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, "trae/**" ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Enable .NET Framework 3.5 feature
+        shell: powershell
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          choco install netfx-3.5-dev -y --no-progress
+
+      - name: Restore NuGet packages
+        run: nuget restore FFmpegKit.slnx
+
+      - name: Build (Release)
+        run: msbuild FFmpegKit.slnx /p:Configuration=Release /p:Platform="Any CPU" /m /v:minimal
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: FFmpegKit-bin
+          path: bin/Release/
+          if-no-files-found: error
