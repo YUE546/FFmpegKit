@@ -1148,21 +1148,6 @@ namespace FFmpegKit
         {
             var codecs = new List<VideoCodecInfo>();
 
-            // 自动选项：根据 GPU 设置自动选择编码器
-            codecs.Add(new VideoCodecInfo
-            {
-                DisplayName = "自动（根据GPU设置）",
-                FFmpegEncoder = "auto",
-                QualityType = "crf",
-                QualityLabel = "CRF",
-                DefaultQuality = 20,
-                MinQuality = 0,
-                MaxQuality = 51,
-                IsHardware = false,
-                GpuType = "",
-                SupportsPreset = true
-            });
-
             // 软件编码器
             codecs.Add(new VideoCodecInfo
             {
@@ -1373,7 +1358,7 @@ namespace FFmpegKit
         /// </summary>
         private static string GetEffectiveVideoEncoder(VideoCodecInfo codec, bool useGpu)
         {
-            if (codec == null || codec.FFmpegEncoder == "auto")
+            if (codec == null)
             {
                 if (useGpu)
                     return GetGpuVideoCodec(ConfigManager.DefaultGPU.ToLower());
@@ -1406,9 +1391,9 @@ namespace FFmpegKit
             }
 
             // 质量参数
-            if (codec == null || codec.FFmpegEncoder == "auto")
+            if (codec == null)
             {
-                // 自动模式：沿用旧逻辑
+                // 防御性回退：编码器未指定时沿用 GPU 设置
                 sb.Append(GetGpuQualityParams(ConfigManager.DefaultGPU.ToLower(), qualityValue, useGpu));
             }
             else
