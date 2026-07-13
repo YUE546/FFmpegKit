@@ -21,12 +21,6 @@ jobs:
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2
 
-      - name: Enable .NET Framework 3.5 feature
-        shell: powershell
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          choco install netfx-3.5-dev -y --no-progress
-
       - name: Restore NuGet packages
         run: nuget restore FFmpegKit.slnx
 
